@@ -5,6 +5,7 @@
 #include <bits/stdc++.h>
 #define INF 1e9
 #define kEpsilon 1e-8
+#define PI 3.14159265
 // Print progress to console while loading (large models)
 #define OBJL_CONSOLE_OUTPUT
 

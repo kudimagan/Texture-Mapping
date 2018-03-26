@@ -107,7 +107,17 @@ colourHSV trace(Vector3 point,Vector3 dir,colourHSV lightColorHSV)
        }
     }
     if(minZ == INF){return surface;}
-    else {surface.v=1;}
+    else {
+
+        Vector3 stPt = mean;
+        Vector3 dir = minPoint - mean;
+        double d = math::MagnitudeV3(dir);
+        dir = dir*(700/d);
+        Vector3 point = stPt + dir;
+        double v = atan(point.Y/point.Z)/(2*PI);
+        double u = z/(x*sin(2*PI*v));
+        u = atan(u)/(2*PI);
+    }
     return surface;
 }
 void backFaceCulling(Vector3 viewer)
@@ -126,6 +136,7 @@ void render(string filename)
 {
     unsigned width = 200,height = 100;
     colourRGB *image = new colourRGB[width * height];
+    colourRGB *image2 = new colourRGB[500*500];
     colourHSV *image1 = new colourHSV[width*height],*pixel = image1;
     char buffer[1024];
     strcpy(buffer,filename.c_str());
