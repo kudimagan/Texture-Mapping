@@ -27,6 +27,7 @@ void OBJParse(string filename)
    ifstream file(filename);
    string curline;
    int counter = 1;
+   double minX,maxX,minY,maxY,minZ,maxZ;
    while(getline(file,curline))
    {
     if(algorithm::firstToken(curline) == "v")
@@ -123,13 +124,13 @@ void backFaceCulling(Vector3 viewer)
 }
 void render(string filename)
 {
-    unsigned width =200,height = 200;
+    unsigned width = 200,height = 100;
     colourRGB *image = new colourRGB[width * height];
     colourHSV *image1 = new colourHSV[width*height],*pixel = image1;
     char buffer[1024];
     strcpy(buffer,filename.c_str());
     int i,j,k;
-    Vector3 viewer(100,50,1000);
+    Vector3 viewer(50,50,1000);
     backFaceCulling(viewer);
     for(j=0;j<height;j++)
     for(i=0;i<width;i++,pixel++)
@@ -156,10 +157,8 @@ void render(string filename)
 }
 int main()
 {
-    OBJParse("bunny.obj");
+    OBJParse("mug.obj");
     calculateMean();
-    for(int it=1;it<=vertexcount;it++)
-    	cout<<vertices[it].X<<" "<<vertices[it].Y<<" "<<vertices[it].Z<<endl;
-    render("bunny.ppm");
+    render("mug.ppm");
     return 0;
 }
