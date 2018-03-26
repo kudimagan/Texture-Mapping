@@ -1,4 +1,5 @@
 #include "graphics_library.h"
+#include <bits/stdc++.h>
 using namespace std;
 using namespace objl;
 struct triangle{
@@ -36,9 +37,9 @@ void OBJParse(string filename)
       std::vector<std::string> spos;
 		  Vector3 vpos;
 		  algorithm::split(algorithm::tail(curline), spos, " ");
-      vpos.X = std::stod(spos[0])*1000+100;
+      vpos.X = std::stod(spos[0])*1000+200;
 		  vpos.Y = std::stod(spos[1])*1000;
-		  vpos.Z = std::stod(spos[2])*1000-200;
+		  vpos.Z = std::stod(spos[2])*1000-400;
 		  vertices[counter++] = vpos;
 		  vertexcount++;
 
@@ -81,7 +82,7 @@ void calculateMean()
 	}
 	mean = mean*(1.0/vertexcount);
 }
-colourHSV trace(Vector3 point,Vector3 dir,colourHSV lightColorHSV)
+colourHSV trace(Vector3 point,Vector3 dir,colourHSV lightColorHSV,colourRGB image2[],int width1,int height1)
 {
    colourHSV surface;
    surface.h = lightColorHSV.h;
@@ -108,15 +109,18 @@ colourHSV trace(Vector3 point,Vector3 dir,colourHSV lightColorHSV)
     }
     if(minZ == INF){return surface;}
     else {
-
+        
         Vector3 stPt = mean;
         Vector3 dir = minPoint - mean;
         double d = math::MagnitudeV3(dir);
-        dir = dir*(700/d);
-        Vector3 point = stPt + dir;
-        double v = atan(point.Y/point.Z)/(2*PI);
-        double u = z/(x*sin(2*PI*v));
-        u = atan(u)/(2*PI);
+        dir = dir*(1.0/d);
+        Vector3 point = dir;
+        double v = asin(dir.Y)/PI+0.5;
+        double u = asin(dir.X)/PI+0.5;
+        int u1 = (int)(u*width1);
+        int v1 = (int)(v*height1);
+        cout<<u1<<" "<<v1<<endl;
+        surface = convertRGB2HSV(image2[u1*width1+v1]);
     }
     return surface;
 }
@@ -136,22 +140,46 @@ void render(string filename)
 {
     unsigned width = 200,height = 100;
     colourRGB *image = new colourRGB[width * height];
-    colourRGB *image2 = new colourRGB[500*500];
+
     colourHSV *image1 = new colourHSV[width*height],*pixel = image1;
     char buffer[1024];
     strcpy(buffer,filename.c_str());
     int i,j,k;
     Vector3 viewer(50,50,1000);
     backFaceCulling(viewer);
+    ifstream ifs("cube.pgm", std::ios::in);
+    char buff;
+    char buff2[1024];
+    ifs>>buff2;
+    cout<<buff2<<"\n";
+    int width1,height1;
+    ifs>>width1;
+    cout<<width1<<" ";
+    ifs>>height1;
+    cout<<height1<<"\n";
+    ifs>>buff2;
+    colourRGB *image2 = new colourRGB[width1*height1];
+    unsigned char ch1;
+    int it=0;
+    while(!ifs.eof())
+    {
+       ifs>>ch1;
+       int tempi = (unsigned int)ch1;
+       image2[it++] = colourRGB(tempi/255,tempi/255,tempi/255);
+
+    }
+    ifs.close();
     for(j=0;j<height;j++)
     for(i=0;i<width;i++,pixel++)
     {
         Vector3 framePt(i,height-1-j,0);
         Vector3 lightLoc(900,900,900);
         Vector3 dir = framePt - viewer;
-        *pixel = trace(viewer,dir,convertRGB2HSV(colourRGB(0,0,1)));
+        *pixel = trace(viewer,dir,convertRGB2HSV(colourRGB(0,0,1)),image2,width1,height1);
         //fill colour at pixel
     }
+
+
     for(unsigned int i = 0;i<width*height;i++)
     {
     	image[i] = convertHSV2RGB(image1[i]);
@@ -170,6 +198,6 @@ int main()
 {
     OBJParse("mug.obj");
     calculateMean();
-    render("mug.ppm");
+    render("mug1.ppm");
     return 0;
 }
