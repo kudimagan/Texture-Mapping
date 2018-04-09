@@ -188,11 +188,7 @@ namespace math
 	Vector3 max (Vector3 us, Vector3 them)
 	{
 		if (us.X < them.X)
-			us.X = them.X;
-		if (us.Y < them.Y)
-			us.Y = them.Y;
-		if (us.Z < them.Z)
-			us.Z = them.Z;
+			{us.X = them.X;us.Y = them.Y;us.Z = them.Z;}
 		return us;
 	}
 
@@ -200,11 +196,7 @@ namespace math
 	Vector3 min (Vector3 us, Vector3 them)
 	{
 		if (us.X > them.X)
-			us.X = them.X;
-		if (us.Y > them.Y)
-			us.Y = them.Y;
-		if (us.Z > them.Z)
-			us.Z = them.Z;
+         {us.X = them.X;us.Y = them.Y;us.Z = them.Z;}
 		return us;
 	}
 

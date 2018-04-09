@@ -2,7 +2,7 @@
 
 using namespace objl;
 
-#define scale 1000
+#define scale 37.795275590551
 #define DIV 40
 #define MULT 0.4
 #define width 200
@@ -17,22 +17,23 @@ Vector3 mean;
 double ka, kd, ks, spep;	// material reflective properties
 double d0, d1, d2;			// attenuation
 double Ia, Ip;				// ambient light and light source
-
+int matr[1000][1000];
 Vector3 calculateMean()
 {
-	Vector3 minv, maxv;
+	Vector3 mean(0,0,0);
 	for (int it = 1; it <= vertexCount; it++)
 	{
-		minv = math::min (minv, vertices[it]);
-		maxv = math::max (maxv, vertices[it]);
+       mean = mean + vertices[it];
 	}
-	return ((minv + maxv) / 2);
+	return (mean*(1.0/vertexCount));
 }
+double maxX,maxY,maxZ,minX,minY,minZ;
 
-void shiftScale ()
+void shiftScale (double minX,double minY)
 {
+	Vector3 mean(-minX,-minY,-500);
 	for (int it = 1; it <= vertexCount; ++it)
-		vertices[it] = vertices[it] - mean;
+		vertices[it] = vertices[it] + mean;
 }
 
 void OBJParse (string filename)
@@ -41,7 +42,7 @@ void OBJParse (string filename)
 	string curline;
 	int counter = 1;
 	double minX, maxX, minY, maxY, minZ, maxZ;
-	bool flag = false;
+	bool flag = false;bool flag1 = false;
 
 	while (getline(file, curline))
 	{
@@ -50,20 +51,36 @@ void OBJParse (string filename)
 			vector<string> spos;
 			Vector3 vpos;
 			algorithm::split(algorithm::tail(curline), spos, " ");
-			vpos.X = stod(spos[0]) * scale + 150;
-			vpos.Y = stod(spos[1]) * scale;
-			vpos.Z = stod(spos[2]) * scale - 400;
+			vpos.X = stod(spos[0])*scale;
+			vpos.Y = stod(spos[1])*scale;
+			vpos.Z = stod(spos[2])*scale;
 			vertices[counter++] = vpos;
 			vertexCount++;
-			flag = true;
+			flag1 = true;
+			if(flag==false)
+			 {
+			 	flag = true;
+			 	minX = maxX = vpos.X;
+			 	minY = maxY = vpos.Y;
+			 	minZ = maxZ = vpos.Z;
+
+			 }else
+			 {
+			 	minX = min(minX,vpos.X);
+			 	maxX = max(maxX,vpos.X);
+			 	minY = min(minY,vpos.Y);
+			 	maxY = max(maxY,vpos.Y);
+			 	minZ = min(minZ,vpos.Z);
+			 	maxZ = max(maxZ,vpos.Z);
+			 }
 		}
 
-		else if (flag)
+		else if (flag1)
 			break;
 	}
 
+	shiftScale(minX,minY);
 	mean = calculateMean();
-	//shiftScale();
 
 	do
 	{
@@ -167,13 +184,28 @@ colourRGB trace (Vector3 point, Vector3 dir, colourRGB lightColorRGB, Vector3 li
 			double ut = sqrt(director.X * director.X + director.Z * director.Z);
 			double theta = acos(director.X / ut);
 			double phi = acos(ut);
+			int theta1;
+			int phi1;
 			if (director.Z < 0)
 				theta = 2 * M_PI - theta;
 			if (director.Y < 0)
 				phi = 2 * M_PI - phi;
 			theta /= (2 * M_PI / DIV);
 			phi /= (2 * M_PI / DIV);
-			surface.v = ((int)theta + (int)phi + 1) % 2;
+		    if(theta-int(theta)>=0.5)
+                theta1 = int(theta)+1;
+            else theta1 = int(theta);
+            if(phi1-int(phi1)>=0.5)
+            	phi1 = int(phi)+1;
+            else phi1 = int(phi);
+			surface.v =  (theta1 + phi1 + 1) % 2;
+			/*double u = 0.5 + atan2(director.Z,director.X)/(2*M_PI);
+			double v = 0.5 - asin(director.Y)/(M_PI);
+			int u1 = u*50;
+			int v1 = v*50;
+			if((u1/5)%2 == (v1/5)%2)
+				surface.v = 1;
+			else surface.v = 0;*/
 		}
 		else if (mode == 2)
 		{
@@ -236,7 +268,7 @@ void render (string filename, int mode = 0)
 	colourRGB * pixel = image;
 	
 	//Back Face Culling
-	Vector3 viewer(50, 50, 1000);
+	Vector3 viewer(100,100, 1000);
 	backFaceCulling(viewer);
 
 	// Processing texture
@@ -246,15 +278,19 @@ void render (string filename, int mode = 0)
 		for(int i = 0; i < width; i++, pixel++)
 		{
 			Vector3 framePt(i, height-1-j, 0);
-			Vector3 lightLoc(300,300,300);
+			Vector3 lightLoc(100,100,300);
 			Vector3 dir = framePt - viewer;
 			//*pixel = trace (viewer, dir, colourRGB(0,0,1), lightLoc, image2, width1, height1);
 			*pixel = trace (viewer, dir, colourRGB(1,0,0), lightLoc, mode);
+			if((*pixel).r || (*pixel).g || (*pixel).b)
+			{
+				matr[i][height-1-j] = 1;
+			}
 			//fill colour at pixel
 			progressBar (((j+1) * height + (i + 1)) * 1.0 / (width * height));
 		}
 	}
-
+	pixel = image;
 	double maxim = 0;
 	for (int i = 0; i < width * height; ++i)
 	{
@@ -262,7 +298,28 @@ void render (string filename, int mode = 0)
 		maxim = max(maxim, image[i].g);
 		maxim = max(maxim, image[i].b);
 	}
-
+	/*for(int j = 0;j<height;j++)
+	{
+		for(int i = 0;i<width;i++,pixel++)
+		{
+			 if(i==0 || j == 0 || i==width-1 || j== height-1)continue;
+			 int a1 = 0,a2=0;
+			 if(matr[i][height-1-j-1])a1++;else a2++;
+			 if(matr[i][height-j])a1++;else a2++;
+			 if(matr[i+1][height-1-j])a1++;else a2++;
+			 if(matr[i-1][height-1-j])a1++;else a2++;
+			 if(matr[i+1][height-2-j])a1++;else a2++;
+			 if(matr[i+1][height-j])a1++;else a2++;
+			 if(matr[i-1][height-2-j])a1++;else a2++;
+			 if(matr[i-1][height-j])a1++;else a2++;
+			 if(!((*pixel).r || (*pixel).g || (*pixel).b))
+			 {
+                 if(a1>a2)(*pixel).r = maxim;
+			 }else{
+			 	if(a2>a1)(*pixel).r = 0;
+			 }
+		}
+	}*/
 	//Writing to file
 	cout << "\nImage file opened for writing.\n";
 	ofstream ofs (filename.c_str(), ios::out);
@@ -274,7 +331,6 @@ void render (string filename, int mode = 0)
 			<< (unsigned char)((image[i].b / maxim) * 255);
 	
 	ofs.close();
-	
 	delete [] image;
 }
 
@@ -290,11 +346,11 @@ int main()
 	Ia = 0.2;
 	Ip = 0.6;
 
-	OBJParse("../Objects/bunny.obj");
+	OBJParse("../Objects/sphere.obj");
 	cout << "Object file parsed.\n";
 	getNormals();
 	cout << "Face normals calculated.\n";
-	render("../Images/bunny15.ppm", 2);
+	render("../Images/bunny15.ppm", 1);
 	cout << "Image rendered.\n";
 	return 0;
 }
