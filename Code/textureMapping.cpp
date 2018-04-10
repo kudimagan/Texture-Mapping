@@ -5,8 +5,8 @@ using namespace objl;
 #define scale 37.795275590551
 #define DIV 40
 #define MULT 0.4
-#define width 200
-#define height 200
+int width;
+int height;
 
 map <int, Vector3> vertices;
 map <int, triangle> objMap;
@@ -31,7 +31,7 @@ double maxX,maxY,maxZ,minX,minY,minZ;
 
 void shiftScale (double minX,double minY)
 {
-	Vector3 mean(-minX,-minY,-500);
+	Vector3 mean(-minX,-minY,-250);
 	for (int it = 1; it <= vertexCount; ++it)
 		vertices[it] = vertices[it] + mean;
 }
@@ -199,17 +199,12 @@ colourRGB trace (Vector3 point, Vector3 dir, colourRGB lightColorRGB, Vector3 li
             	phi1 = int(phi)+1;
             else phi1 = int(phi);
 			surface.v =  (theta1 + phi1 + 1) % 2;
-			/*double u = 0.5 + atan2(director.Z,director.X)/(2*M_PI);
-			double v = 0.5 - asin(director.Y)/(M_PI);
-			int u1 = u*50;
-			int v1 = v*50;
-			if((u1/5)%2 == (v1/5)%2)
-				surface.v = 1;
-			else surface.v = 0;*/
 		}
 		else if (mode == 2)
 		{
-			Vector3 director = minPoint - mean;
+			Vector3 mean1 = mean;
+			mean1.Y = minPoint.Y; 
+			Vector3 director = minPoint - mean1;
 			double r = sqrt(director.X * director.X + director.Z * director.Z);
 			double theta = acos(director.X / r);
 			if (director.Z < 0)
@@ -217,7 +212,6 @@ colourRGB trace (Vector3 point, Vector3 dir, colourRGB lightColorRGB, Vector3 li
 			theta /= (2 * M_PI / DIV);
 			r /= DIV;
 			surface.v = ((int)theta + (int)(director.Y / (MULT * DIV))) % 2;
-			//cout << director.Y << "\n";
 		}
 		else if (mode == 3)
 			surface.v = ((int)(minPoint.X / (MULT * DIV)) + (int)(minPoint.Y / (MULT * DIV))) % 2;
@@ -268,7 +262,7 @@ void render (string filename, int mode = 0)
 	colourRGB * pixel = image;
 	
 	//Back Face Culling
-	Vector3 viewer(100,100, 1000);
+	Vector3 viewer(width/2,height/2, 1000);
 	backFaceCulling(viewer);
 
 	// Processing texture
@@ -278,7 +272,7 @@ void render (string filename, int mode = 0)
 		for(int i = 0; i < width; i++, pixel++)
 		{
 			Vector3 framePt(i, height-1-j, 0);
-			Vector3 lightLoc(100,100,300);
+			Vector3 lightLoc(width/2,height/2,300);
 			Vector3 dir = framePt - viewer;
 			//*pixel = trace (viewer, dir, colourRGB(0,0,1), lightLoc, image2, width1, height1);
 			*pixel = trace (viewer, dir, colourRGB(1,0,0), lightLoc, mode);
@@ -334,7 +328,7 @@ void render (string filename, int mode = 0)
 	delete [] image;
 }
 
-int main()
+int main(int argc,char** argv)
 {
 	ka = 1;
 	kd = 0.5;
@@ -345,12 +339,17 @@ int main()
 	d2 = 0;
 	Ia = 0.2;
 	Ip = 0.6;
+	width = atoi(argv[1]);
+	height = atoi(argv[2]);
+	int mode = atoi(argv[4]);
+	char buffer[1024] = "../Objects/";
+	strcat(buffer,argv[3]);
 
-	OBJParse("../Objects/sphere.obj");
+	OBJParse(buffer);
 	cout << "Object file parsed.\n";
 	getNormals();
 	cout << "Face normals calculated.\n";
-	render("../Images/bunny15.ppm", 1);
+	render("../Images/teapot2.ppm", mode);
 	cout << "Image rendered.\n";
 	return 0;
 }
