@@ -8,6 +8,7 @@
 #define INF 1e9
 #define kEpsilon 1e-8
 #define vEpsilon 1e-3
+#define cEpsilon 1e-2
 
 using namespace std;
 
