@@ -4,7 +4,7 @@
 using namespace objl;
 
 #define scale 37.795275590551
-#define DIV 10
+#define DIV 5
 #define MULT 4
 int width;
 int height;
@@ -20,10 +20,6 @@ double d0, d1, d2;			// attenuation
 double Ia, Ip;				// ambient light and light source
 int matr[1000][1000];
 
-double maxd(double u, double v)
-{
-    return (u < v ? v : u);
-}
 
 Vector3 calculateMean()
 {
@@ -32,7 +28,8 @@ Vector3 calculateMean()
     {
         mean = mean + vertices[it];
     }
-    return (mean*(1.0/vertexCount));
+    mean =  (mean*(1.0/vertexCount));
+    return mean;
 }
 double maxX,maxY,maxZ,minX,minY,minZ;
 
@@ -42,6 +39,8 @@ void shiftScale (double minX,double minY)
     for (int it = 1; it <= vertexCount; ++it)
         vertices[it] = vertices[it] + mean;
 }
+
+
 
 void OBJParse (string filename)
 {
@@ -299,8 +298,8 @@ void render (string filename, string texture, int mode = 0)
     unsigned char rt, gt, bt;
     tex >> u; //header
     //cout << u << "\n";
-    tex >> max;	//MAX
     tex >> widtht >> heightt;
+    tex >> max;	//MAX
     colourRGB ** imagetex = new colourRGB * [heightt];
 
     for (int i = 0; i < heightt; ++i)
@@ -345,37 +344,7 @@ void render (string filename, string texture, int mode = 0)
             progressBar (((j+1) * height + (i + 1)) * 1.0 / (width * height));
         }
     }
-    pixel = image;
-    double maxim = 0;
-    for (int i = 0; i < width * height; ++i)
-    {
-        maxim = maxd(maxim, image[i].r);
-        maxim = maxd(maxim, image[i].g);
-        maxim = maxd(maxim, image[i].b);
-    }
-
-    /*
-    for(int j = 0;j<height;j++)
-    {
-        for(int i = 0;i<width;i++,pixel++)
-        {
-             if(i==0 || j == 0 || i==width-1 || j== height-1)continue;
-             int a1 = 0,a2=0;
-             if(matr[i][height-1-j-1])a1++;else a2++;
-             if(matr[i][height-j])a1++;else a2++;
-             if(matr[i+1][height-1-j])a1++;else a2++;
-             if(matr[i-1][height-1-j])a1++;else a2++;
-             if(!((*pixel).r || (*pixel).g || (*pixel).b))
-             {
-                 if(a1 == 4){(*pixel).r = maxim;
-                 matr[i][height-1-j]=1;}
-             }else{
-                 if(a2==4){(*pixel).r = 0;matr[i][height-1-j]=0;}
-             }
-        }
-    }
-    */
-
+    double maxim = colorNormalise(image,width,height); // find max of either r,g or b to normalise pixel colours
     //Writing to file
     cout << "\nImage file opened for writing: " << filename << "\n";
     ofstream ofs (filename.c_str(), ios::out);
@@ -402,23 +371,20 @@ int main(int argc,char** argv)
     Ia = 0.2;
     Ip = 0.6;
 
-    //width = 100;
     width = atoi(argv[1]);
-    //height = 100;
     height = atoi(argv[2]);
-    //int mode = 2;
     int mode = atoi(argv[4]);
     char buffer[1024] = "../Objects/";
-    //char buffer[1024] = "../Objects/sphere.obj";
     strcat(buffer, argv[3]);
-    //cout << "lk\n";
-
+    char buffer1[1024] = "../Images/";
+    char buffer2[1024] = "../Textures/";
     OBJParse(buffer);
-    //cout << "vk\n";
+    strcat(buffer1,argv[6]);
+    strcat(buffer2,argv[5]);
     cout << "Object file parsed.\n";
     getNormals();
     cout << "Face normals calculated.\n";
-    render("../Images/teapot5.ppm", "../Textures/spots.ppm", mode);
+    render(buffer1,buffer2,mode);
     cout << "Image rendered.\n";
     return 0;
 }

@@ -18,25 +18,7 @@ double ka, kd, ks, spep;	// material reflective properties
 double d0, d1, d2;			// attenuation
 double Ia, Ip;				// ambient light and light source
 int matr[1000][1000];
-void smoothen(colourRGB ** impal, int width, int height)
-{
-	colourHSV m[4];
-	for (int i = 1; i < height - 1; ++i)
-	{
-		for (int j = 1; j < width - 1; ++j)
-		{
-			m[0] = convertRGB2HSV(impal[i-1][j]);
-			m[1] = convertRGB2HSV(impal[i+1][j]);
-			m[2] = convertRGB2HSV(impal[i][j-1]);
-			m[3] = convertRGB2HSV(impal[i][j+1]);
 
-			if (abs(m[0].h - m[1].h) < cEpsilon)
-				if (abs(m[1].h - m[2].h) < cEpsilon)
-					if (abs(m[2].h - m[3].h) < cEpsilon)
-						impal[i][j] = (impal[i-1][j] + impal[i+1][j] + impal[i][j-1] + impal[i][j+1])*(1.0/4);
-		}
-	}
-}
 Vector3 calculateMean()
 {
 	Vector3 mean(0,0,0);
@@ -311,32 +293,7 @@ void render (string filename, int mode = 0)
 		cout<<endl;
 	}
 	pixel = image;
-	double maxim = 0;
-	for (int i = 0; i < width * height; ++i)
-	{
-		maxim = max(maxim, image[i].r);
-		maxim = max(maxim, image[i].g);
-		maxim = max(maxim, image[i].b);
-	}
-	/*for(int j = 0;j<height;j++)
-	{
-		for(int i = 0;i<width;i++,pixel++)
-		{
-			 if(i==0 || j == 0 || i==width-1 || j== height-1)continue;
-			 int a1 = 0,a2=0;
-			 if(matr[i][height-2-j])a1++;else a2++;
-			 if(matr[i][height-j])a1++;else a2++;
-			 if(matr[i+1][height-1-j])a1++;else a2++;
-			 if(matr[i-1][height-1-j])a1++;else a2++;
-			 if(!(*pixel).r)cout<<a1<<endl;
-             if(a1 >=3 && !(*pixel).r){(*pixel).r = maxim;
-			 }else{
-			 	if(a2 >=3 && (*pixel).r){(*pixel).r = 0;}
-			 }
-		}
-	}*/
-	//Writing to file
-	smoothen(image,width,height);
+	double maxim = colorNormalise(image,width,height);
 	cout << "\nImage file opened for writing.\n";
 	ofstream ofs (filename.c_str(), ios::out);
 	ofs << "P6\n" << width << " " << height << "\n255\n";
@@ -371,7 +328,7 @@ int main(int argc,char** argv)
 	cout << "Object file parsed.\n";
 	getNormals();
 	cout << "Face normals calculated.\n";
-	render("../Images/teapot2.ppm", mode);
+	render("../Images/bunny120.ppm", mode);
 	cout << "Image rendered.\n";
 	return 0;
 }

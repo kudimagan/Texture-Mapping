@@ -17,6 +17,144 @@ using namespace std;
 
 // Structure: Vector2
 // Description: A 2D Vector that Holds Positional Data
+struct colourHSV
+{	
+	double h,s,v;
+
+	colourHSV(double r = 0, double g = 0,double b = 0) {h = r; s = g; v = b;}
+};
+
+struct colourRGB
+{
+	double r, g, b;
+
+	colourRGB (double rr = 0, double gg = 0, double bb = 0) {r = rr; g = gg; b = bb;}
+	colourRGB operator * (const colourRGB &t) const {return colourRGB(r*t.r, g*t.g, b*t.b);}
+	colourRGB operator + (const colourRGB &t) const {return colourRGB(r+t.r, g+t.g, b+t.b);}
+	colourRGB operator * (const double& f) const {return colourRGB(r*f, g*f, b*f);}
+};
+
+colourHSV convertRGB2HSV (colourRGB in)
+{
+	colourHSV out;
+	double min, max, delta;
+
+	min = in.r < in.g ? in.r : in.g;
+	min = min < in.b ? min : in.b;
+
+	max = in.r > in.g ? in.r : in.g;
+	max = max > in.b ? max : in.b;
+
+	out.v = max;								// v
+	delta = max - min;
+	if (delta < 0.00001)
+	{
+		out.s = 0.0;
+		out.h = 0; 	// undefined, maybe nan?
+		return out;
+	}
+
+	if (max > 0.0)  // NOTE: if Max is == 0, this divide would cause a crash
+		out.s = (delta / max);					// s
+	else 
+	{
+		// if max is 0, then r = g = b = 0				
+		// s = 0, h is undefined
+		out.s = 0.0;
+		out.h = NAN;							// its now undefined
+		return out;
+	}
+	if (in.r >= max)							// > is bogus, just keeps compiler happy
+		out.h = (in.g - in.b) / delta;			// between yellow & magenta
+	else if (in.g >= max)
+		out.h = 2.0 + (in.b - in.r) / delta;	// between cyan & yellow
+	else
+		out.h = 4.0 + (in.r - in.g) / delta;	// between magenta & cyan
+
+	out.h *= 60.0;								// degrees
+
+	if (out.h < 0.0)
+		out.h += 360.0;
+
+	return out;
+}
+
+colourRGB convertHSV2RGB(colourHSV in)
+{
+	double hh, p, q, t, ff;
+	long i;
+	colourRGB out;
+
+	if (in.s <= 0.0) 	// < is bogus, just shuts up warnings
+	{		 
+		out.r = in.v;
+		out.g = in.v;
+		out.b = in.v;
+		return out;
+	}
+
+	hh = in.h;
+	if (hh >= 360.0) 
+		hh = 0.0;
+	hh /= 60.0;
+	i = (long)hh;
+	ff = hh - i;
+	p = in.v * (1.0 - in.s);
+	q = in.v * (1.0 - (in.s * ff));
+	t = in.v * (1.0 - (in.s * (1.0 - ff)));
+
+	switch(i) 
+	{
+		case 0:
+			out.r = in.v;
+			out.g = t;
+			out.b = p;
+			break;
+		case 1:
+			out.r = q;
+			out.g = in.v;
+			out.b = p;
+			break;
+		case 2:
+			out.r = p;
+			out.g = in.v;
+			out.b = t;
+			break;
+		case 3:
+			out.r = p;
+			out.g = q;
+			out.b = in.v;
+			break;
+		case 4:
+			out.r = t;
+			out.g = p;
+			out.b = in.v;
+			break;
+		case 5:
+		default:
+			out.r = in.v;
+			out.g = p;
+			out.b = q;
+			break;
+	}
+
+	return out;	 
+}
+
+void progressBar (double progress)
+{
+    int barWidth = 70;
+    cout << "[";
+    int pos = barWidth * progress;
+    for (int i = 0; i <= barWidth; ++i)
+    {
+        if (i < pos) cout << "=";
+        else if (i == pos) cout << ">";
+        else cout << " ";
+    }
+    cout << "] " << int(progress * 100.0) << " %\r";
+    cout.flush();
+}
 struct Vector2
 {
 	// Default Constructor
@@ -149,9 +287,39 @@ namespace objl
 		string map_d;
 		// Bump Map
 		string map_bump;
-	};
+	};*/
+	double maxd(double u, double v)
+{
+    return (u < v ? v : u);
+}
+    double colorNormalise(colourRGB * impal, int width, int height)
+   {
+   	 double maxim = 0;
+     for (int i = 0; i < width * height; ++i)
+    {
+        maxim = maxd(maxim, impal[i].r);
+        maxim = maxd(maxim, impal[i].g);
+        maxim = maxd(maxim, impal[i].b);
+    }
+    colourHSV m[4];
+    for (int i = 1; i < height - 1; ++i)
+    {
+        for (int j = 1; j < width - 1; ++j)
+        {
+            m[0] = convertRGB2HSV(impal[(i-1)*width+j]);
+            m[1] = convertRGB2HSV(impal[(i+1)*width+j]);
+            m[2] = convertRGB2HSV(impal[i*width+j-1]);
+            m[3] = convertRGB2HSV(impal[i*width+j+1]);
 
-	// Structure: Mesh
+            if (abs(m[0].h - m[1].h) < cEpsilon)
+                if (abs(m[1].h - m[2].h) < cEpsilon)
+                    if (abs(m[2].h - m[3].h) < cEpsilon)
+                        impal[i*width+j] = (impal[(i-1)*width+j] + impal[(i+1)*width+j] + impal[i*width+j-1] + impal[i*width+j+1]) * 0.25;
+        }
+    }
+    return maxim;
+}
+	/*// Structure: Mesh
 	//
 	// Description: A Simple Mesh Object that holds
 	//	a name, a vertex list, and an index list
@@ -389,144 +557,7 @@ namespace algorithm
 	}
 }
 
-struct colourHSV
-{	
-	double h,s,v;
 
-	colourHSV(double r = 0, double g = 0,double b = 0) {h = r; s = g; v = b;}
-};
-
-struct colourRGB
-{
-	double r, g, b;
-
-	colourRGB (double rr = 0, double gg = 0, double bb = 0) {r = rr; g = gg; b = bb;}
-	colourRGB operator * (const colourRGB &t) const {return colourRGB(r*t.r, g*t.g, b*t.b);}
-	colourRGB operator + (const colourRGB &t) const {return colourRGB(r+t.r, g+t.g, b+t.b);}
-	colourRGB operator * (const double& f) const {return colourRGB(r*f, g*f, b*f);}
-};
-
-colourHSV convertRGB2HSV (colourRGB in)
-{
-	colourHSV out;
-	double min, max, delta;
-
-	min = in.r < in.g ? in.r : in.g;
-	min = min < in.b ? min : in.b;
-
-	max = in.r > in.g ? in.r : in.g;
-	max = max > in.b ? max : in.b;
-
-	out.v = max;								// v
-	delta = max - min;
-	if (delta < 0.00001)
-	{
-		out.s = 0.0;
-		out.h = 0; 	// undefined, maybe nan?
-		return out;
-	}
-
-	if (max > 0.0)  // NOTE: if Max is == 0, this divide would cause a crash
-		out.s = (delta / max);					// s
-	else 
-	{
-		// if max is 0, then r = g = b = 0				
-		// s = 0, h is undefined
-		out.s = 0.0;
-		out.h = NAN;							// its now undefined
-		return out;
-	}
-	if (in.r >= max)							// > is bogus, just keeps compiler happy
-		out.h = (in.g - in.b) / delta;			// between yellow & magenta
-	else if (in.g >= max)
-		out.h = 2.0 + (in.b - in.r) / delta;	// between cyan & yellow
-	else
-		out.h = 4.0 + (in.r - in.g) / delta;	// between magenta & cyan
-
-	out.h *= 60.0;								// degrees
-
-	if (out.h < 0.0)
-		out.h += 360.0;
-
-	return out;
-}
-
-colourRGB convertHSV2RGB(colourHSV in)
-{
-	double hh, p, q, t, ff;
-	long i;
-	colourRGB out;
-
-	if (in.s <= 0.0) 	// < is bogus, just shuts up warnings
-	{		 
-		out.r = in.v;
-		out.g = in.v;
-		out.b = in.v;
-		return out;
-	}
-
-	hh = in.h;
-	if (hh >= 360.0) 
-		hh = 0.0;
-	hh /= 60.0;
-	i = (long)hh;
-	ff = hh - i;
-	p = in.v * (1.0 - in.s);
-	q = in.v * (1.0 - (in.s * ff));
-	t = in.v * (1.0 - (in.s * (1.0 - ff)));
-
-	switch(i) 
-	{
-		case 0:
-			out.r = in.v;
-			out.g = t;
-			out.b = p;
-			break;
-		case 1:
-			out.r = q;
-			out.g = in.v;
-			out.b = p;
-			break;
-		case 2:
-			out.r = p;
-			out.g = in.v;
-			out.b = t;
-			break;
-		case 3:
-			out.r = p;
-			out.g = q;
-			out.b = in.v;
-			break;
-		case 4:
-			out.r = t;
-			out.g = p;
-			out.b = in.v;
-			break;
-		case 5:
-		default:
-			out.r = in.v;
-			out.g = p;
-			out.b = q;
-			break;
-	}
-
-	return out;	 
-}
-
-void progressBar (double progress)
-{
-    int barWidth = 70;
-    cout << "[";
-    int pos = barWidth * progress;
-    for (int i = 0; i <= barWidth; ++i)
-    {
-        if (i < pos) cout << "=";
-        else if (i == pos) cout << ">";
-        else cout << " ";
-    }
-    cout << "] " << int(progress * 100.0) << " %\r";
-    cout.flush();
-}
 
 /*
 struct rgbInt
