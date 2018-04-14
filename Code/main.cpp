@@ -8,6 +8,7 @@ using namespace objl;
 #define MULT 4
 int width;
 int height;
+double scale1;
 
 map <int, Vector3> vertices;
 map <int, triangle> objMap;
@@ -57,9 +58,9 @@ void OBJParse (string filename)
             vector<string> spos;
             Vector3 vpos;
             algorithm::split(algorithm::tail(curline), spos, " ");
-            vpos.X = stod(spos[0])*scale;
-            vpos.Y = stod(spos[1])*scale;
-            vpos.Z = stod(spos[2])*scale;
+            vpos.X = stod(spos[0])*scale*scale1;
+            vpos.Y = stod(spos[1])*scale*scale1;
+            vpos.Z = stod(spos[2])*scale*scale1;
             vertices[counter++] = vpos;
             vertexCount++;
             flag1 = true;
@@ -370,10 +371,10 @@ int main(int argc,char** argv)
     d2 = 0;
     Ia = 0.2;
     Ip = 0.6;
-
     width = atoi(argv[1]);
     height = atoi(argv[2]);
     int mode = atoi(argv[4]);
+    scale1 = atoi(argv[7]);
     char buffer[1024] = "../Objects/";
     strcat(buffer, argv[3]);
     char buffer1[1024] = "../Images/";

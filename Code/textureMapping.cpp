@@ -7,6 +7,7 @@ using namespace objl;
 #define MULT 0.4
 int width;
 int height;
+double scale1;
 
 map <int, Vector3> vertices;
 map <int, triangle> objMap;
@@ -32,7 +33,7 @@ double maxX,maxY,maxZ,minX,minY,minZ;
 
 void shiftScale (double minX,double minY)
 {
-	Vector3 mean(-minX,-minY,-250);
+	Vector3 mean(-minX,-minY,-1000);
 	for (int it = 1; it <= vertexCount; ++it)
 		vertices[it] = vertices[it] + mean;
 }
@@ -52,9 +53,9 @@ void OBJParse (string filename)
 			vector<string> spos;
 			Vector3 vpos;
 			algorithm::split(algorithm::tail(curline), spos, " ");
-			vpos.X = stod(spos[0])*scale;
-			vpos.Y = stod(spos[1])*scale;
-			vpos.Z = stod(spos[2])*scale;
+			vpos.X = stod(spos[0]);//*scale*scale1;
+			vpos.Y = stod(spos[1]);//*scale*scale1;
+			vpos.Z = stod(spos[2]);//*scale*scale1;
 			vertices[counter++] = vpos;
 			vertexCount++;
 			flag1 = true;
@@ -276,7 +277,7 @@ void render (string filename, int mode = 0)
 			Vector3 lightLoc(width/2,height/2,300);
 			Vector3 dir = framePt - viewer;
 			//*pixel = trace (viewer, dir, colourRGB(0,0,1), lightLoc, image2, width1, height1);
-			*pixel = trace (viewer, dir, colourRGB(1,0,0), lightLoc, mode);
+			*pixel = trace (viewer, dir, colourRGB(1,1,1), lightLoc, mode);
 			if((*pixel).r || (*pixel).g || (*pixel).b)
 			{
 				matr[i][height-1-j] = 1;
@@ -320,6 +321,7 @@ int main(int argc,char** argv)
 	Ip = 0.6;
 	width = atoi(argv[1]);
 	height = atoi(argv[2]);
+	scale1 = atoi(argv[6]);
 	int mode = atoi(argv[4]);
 	char buffer[1024] = "../Objects/";
 	strcat(buffer,argv[3]);
@@ -328,7 +330,9 @@ int main(int argc,char** argv)
 	cout << "Object file parsed.\n";
 	getNormals();
 	cout << "Face normals calculated.\n";
-	render("../Images/bunny120.ppm", mode);
+	char buffer1[1024] = "../Images/";
+	strcat(buffer1,argv[5]);
+	render(buffer1, mode);
 	cout << "Image rendered.\n";
 	return 0;
 }

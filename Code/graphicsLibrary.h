@@ -231,63 +231,6 @@ namespace objl
 		triangle() {visible = true;}
 	};
 
-	/*
-	// Structure: Vertex
-	//
-	// Description: Model Vertex object that holds
-	//	a Position, Normal, and Texture Coordinate
-	struct Vertex
-	{
-		// Position Vector
-		Vector3 Position;
-
-		// Normal Vector
-		Vector3 Normal;
-
-		// Texture Coordinate Vector
-		Vector2 TextureCoordinate;
-	};
-
-	struct Material
-	{
-		Material()
-		{
-			name;
-			Ns = 0.0;
-			Ni = 0.0;
-			d = 0.0;
-			illum = 0;
-		}
-
-		// Material Name
-		string name;
-		// Ambient Color
-		Vector3 Ka;
-		// Diffuse Color
-		Vector3 Kd;
-		// Specular Color
-		Vector3 Ks;
-		// Specular Exponent
-		double Ns;
-		// Optical Density
-		double Ni;
-		// Dissolve
-		double d;
-		// Illumination
-		int illum;
-		// Ambient Texture Map
-		string map_Ka;
-		// Diffuse Texture Map
-		string map_Kd;
-		// Specular Texture Map
-		string map_Ks;
-		// Specular Hightlight Map
-		string map_Ns;
-		// Alpha Texture Map
-		string map_d;
-		// Bump Map
-		string map_bump;
-	};*/
 	double maxd(double u, double v)
 {
     return (u < v ? v : u);
@@ -313,40 +256,13 @@ namespace objl
 
             if (abs(m[0].h - m[1].h) < cEpsilon)
                 if (abs(m[1].h - m[2].h) < cEpsilon)
-                    if (abs(m[2].h - m[3].h) < cEpsilon)
+                    if (abs(m[2].h - m[3].h) < cEpsilon)//checking floating point error or not
                         impal[i*width+j] = (impal[(i-1)*width+j] + impal[(i+1)*width+j] + impal[i*width+j-1] + impal[i*width+j+1]) * 0.25;
         }
     }
     return maxim;
 }
-	/*// Structure: Mesh
-	//
-	// Description: A Simple Mesh Object that holds
-	//	a name, a vertex list, and an index list
-	struct Mesh
-	{
-		// Default Constructor
-		Mesh()
-		{
 
-		}
-		// Variable Set Constructor
-		Mesh(vector<Vertex>& _Vertices, vector<unsigned int>& _Indices)
-		{
-			Vertices = _Vertices;
-			Indices = _Indices;
-		}
-		// Mesh Name
-		string MeshName;
-		// Vertex List
-		vector<Vertex> Vertices;
-		// Index List
-		vector<unsigned int> Indices;
-
-		// Material
-		Material MeshMaterial;
-	};
-	*/
 }
 
 // Namespace: Math
@@ -558,14 +474,5 @@ namespace algorithm
 }
 
 
-
-/*
-struct rgbInt
-{
-	int r, g, b;
-
-	colourRGB convertTo01() {return colourRGB (r * 1.0/255, g * 1.0/255, b * 1.0/255);}
-};
-*/
 
 
