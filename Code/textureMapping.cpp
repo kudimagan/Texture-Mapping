@@ -257,7 +257,6 @@ void backFaceCulling (Vector3 viewer)
 //mode = 1 => Spherical Texture
 //mode = 2 => Cylindrical Texture
 //mode = 3 => Planar Texture
-//mode = 4 => Cubic Texture
 void render (string filename, int mode = 0)
 {
 	colourRGB * image = new colourRGB[width * height];

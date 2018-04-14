@@ -281,8 +281,7 @@ void backFaceCulling (Vector3 viewer)
 //mode = 1 => Spherical Texture
 //mode = 2 => Cylindrical Texture
 //mode = 3 => Planar Texture
-//mode = 4 => Cubic Texture
-void render (string filename, string texture, int mode = 0)
+void render (string filename, string texture, int mode = 0, bool ill = false)
 {
     colourRGB * image = new colourRGB[width * height];
     colourRGB * pixel = image;
@@ -334,7 +333,7 @@ void render (string filename, string texture, int mode = 0)
             Vector3 lightLoc(width/2,height/2,300);
             Vector3 dir = framePt - viewer;
             //pixel = trace (viewer, dir, colourRGB(0,0,1), lightLoc, imagetex, widtht, heightt);
-            *pixel = trace (viewer, dir, colourRGB(1,0,0), lightLoc, mode, false, imagetex, widtht, heightt);
+            *pixel = trace (viewer, dir, colourRGB(1,0,0), lightLoc, mode, ill, imagetex, widtht, heightt);
             /*
             if((*pixel).r || (*pixel).g || (*pixel).b)
             {
@@ -371,10 +370,12 @@ int main(int argc,char** argv)
     d2 = 0;
     Ia = 0.2;
     Ip = 0.6;
+
     width = atoi(argv[1]);
     height = atoi(argv[2]);
     int mode = atoi(argv[4]);
     scale1 = atoi(argv[7]);
+
     char buffer[1024] = "../Objects/";
     strcat(buffer, argv[3]);
     char buffer1[1024] = "../Images/";
