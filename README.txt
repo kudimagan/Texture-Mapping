@@ -11,8 +11,11 @@ Directions to run:
 3) Navigate to the folder Code by running cd Code.
 4) For textureMappingInbuiltCheckers.cpp, run the commands
        1)g++ -std=c++14 textureMappingInbuiltCheckers.cpp to generate a.out file.
-       2)./a.out <width of image - integer> <height of image - integer> <name of obj file> <uv mapping mode - 1 or 2 or 3> <imageName.ppm
-> <extra scaling factor - double(adjust as required)>
+       2)./a.out <width of image - integer> <height of image - integer> <name of obj file> 
+       <uv mapping mode - 0 or 1 or 2 or 3> <imageName.ppm> 
+       <extra scaling factor - double (adjust as required)>
 5) For textureMappingWithUserTex.cpp, run the commands
        1)g++ -std=c++14 textureMappingWithUserTex.cpp to generate a.out file.
-       2)./a.out <width of image - integer> <height of image - integer> <name of obj file> <uv mapping mode - 1 or 2 or 3> <textureName.ppm> <imageName.ppm> <extra scaling factor - double(adjust as required)>
+       2)./a.out <width of image - integer> <height of image - integer> <name of obj file> 
+       <uv mapping mode - 0 or 1 or 2 or 3> <textureName.ppm> <imageName.ppm> 
+       <extra scaling factor - double(adjust as required)>
